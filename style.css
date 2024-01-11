@@ -32,9 +32,29 @@ header, footer {
   padding: 40px 20px;
 }
 
+header h1 {
+  align-items: center;
+  color: cyan;
+  display: flex;
+  font-size: 75px;
+  font-weight: 900;
+  justify-content: center;
+  top: auto;
+}
+
 main {
   flex: 1;
   display: flex;
+}
+
+footer p {
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+}
+
+#heart {
+  color: red;
 }
 
 #gameCanvas {
