@@ -43,6 +43,7 @@ function addStartButton(thisObj, usePicture = true) {
         startButton.destroy();
         addStopButton(thisObj, usePicture);
         levelManager.updateButton(false);
+        backgroundMusic.play();
     });
     return startButton;
 }
@@ -81,7 +82,8 @@ function renderCoins(thisObject, coinsToRender = coinsCollected) {
             setTimeout(() => {
                 newHighscoreText.destroy();
             }, 1500);
-            }
+            if (highScoreSound != null) highScoreSound.play();
+        }
         hitNewHighscore = true;
         highScore = coinsToRender;
         console.log('New highscore: ' + highScore);
@@ -142,6 +144,11 @@ function resetGame(thisObj, usePicture = true) {
 }
 
 let testInput = null;
+
+let coinSound = null;
+let backgroundMusic = null;
+let highScoreSound = null;
+
 class GameScene extends Phaser.Scene {
 
 
@@ -159,6 +166,10 @@ class GameScene extends Phaser.Scene {
         this.load.image('basket', 'assets/basket.png');
         this.load.image('play-again', 'assets/play-again.png');
 
+        this.load.audio('coin-sound', "assets/sounds/coin-sound.mp3");
+        this.load.audio('background-music', "assets/sounds/background-music.mp3");
+        this.load.audio('highscore-sound', "assets/sounds/highscore-sound.mp3");
+
         levelManager.loadObjects();
     }
 
@@ -175,6 +186,9 @@ class GameScene extends Phaser.Scene {
 
         levelManager.renderLevelSelection(0, true);
 
+        coinSound = this.sound.add("coin-sound");
+        backgroundMusic = this.sound.add("background-music");
+        highScoreSound = this.sound.add("highscore-sound");
 
         window.setInterval(() => {
 
@@ -209,6 +223,9 @@ class GameScene extends Phaser.Scene {
                             fontSize: '50px'
                         });
                     }
+
+                    backgroundMusic.stop();
+                    coinSound.stop();
 
                     levelManager.deleteLevelButton();
                     levelManager.renderEndScreen();
@@ -273,6 +290,8 @@ class GameScene extends Phaser.Scene {
                 const index = coinsInGameArea.indexOf(coin);
                 coin.destroy();
                 coinsInGameArea.splice(index, 1);
+
+                if (coinSound != null) coinSound.play();
 
                 coinsCollected += 1;
                 renderCoins(this, coinsCollected);
