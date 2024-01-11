@@ -11,7 +11,7 @@ let speedDown = 30;
 
 let isGameStarted = false;
 
-const timerDefault = 10;
+const timerDefault = 30;
 let timer = timerDefault;
 
 let timerText = null;
