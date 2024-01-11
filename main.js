@@ -124,6 +124,8 @@ function resetGame(thisObj, usePicture = true) {
         if (coin !== null) coin.destroy();
     });
 
+    backgroundMusic.stop();
+
     isGameStarted = false;
     coinsInGameArea.forEach(coin => {
         if (coin !== null) coin.destroy();
