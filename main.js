@@ -98,7 +98,7 @@ function renderCoins(thisObject, coinsToRender = coinsCollected) {
 function spawnCoin(thisObject) {
     let xCord = Math.floor(Math.random() * sizes.width);
 
-    const spawnedCoin = thisObject.physics.add.image(xCord, 85, 'coin').setScale(0.05).setMaxVelocity(100);
+    const spawnedCoin = thisObject.physics.add.image(xCord, 85, 'coin').setScale(levelManager.getCoinSize()).setMaxVelocity(100);
     coinsInGameArea.push(spawnedCoin);
 }
 

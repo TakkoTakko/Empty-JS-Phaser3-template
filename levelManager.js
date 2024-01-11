@@ -140,11 +140,23 @@ export default class LevelManager {
         switch (selectedLevel) {
             case 0:
             default:
-                return 500;
-            case 1:
                 return 750;
-            case 2:
+            case 1:
                 return 1000;
+            case 2:
+                return 1500;
+        }
+    }
+
+    getCoinSize() {
+        switch (selectedLevel) {
+            case 0:
+            default:
+                return 0.07;
+            case 1:
+                return 0.05;
+            case 2:
+                return 0.03;
         }
     }
 
