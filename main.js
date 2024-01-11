@@ -1,5 +1,6 @@
 import './style.css'
 import Phaser from 'phaser'
+import LevelManger from './levelManager.js';
 
 const sizes = {
     width: 1000,
@@ -10,10 +11,7 @@ let speedDown = 30;
 
 let isGameStarted = false;
 
-
-
-
-const timerDefault = 20;
+const timerDefault = 10;
 let timer = timerDefault;
 
 let timerText = null;
@@ -25,7 +23,6 @@ let stopButton = null;
 
 
 let basket = null;
-const basketSpeed = 100;
 
 let coinsCollected = 0;
 let highScore = 0;
@@ -45,6 +42,7 @@ function addStartButton(thisObj, usePicture = true) {
         renderBasket(thisObj);
         startButton.destroy();
         addStopButton(thisObj, usePicture);
+        levelManager.updateButton(false);
     });
     return startButton;
 }
@@ -57,24 +55,7 @@ function addStopButton(thisObj, usePicture = true) {
         stopButton = thisObj.add.text(480, 35, 'Stop', {fill: '#0f0'});
     }
     stopButton.setInteractive().on('pointerdown', () => {
-        isGameStarted = false;
-        coinsInGameArea.forEach(coin => {
-            coin.destroy();
-        });
-
-        timer = timerDefault;
-        renderTimer(thisObj);
-
-        coinsCollected = 0;
-        renderCoins(thisObj);
-
-        hitNewHighscore = false;
-
-        stopButton.destroy();
-        if (basket !== null) {
-            basket.destroy();
-        }
-        addStartButton(thisObj, usePicture);
+        resetGame(thisObj, usePicture);
     });
     return stopButton;
 }
@@ -89,6 +70,8 @@ let coinsText = null;
 let highScoreText = null;
 
 let hitNewHighscore = false;
+
+let levelManager = null;
 
 
 function renderCoins(thisObject, coinsToRender = coinsCollected) {
@@ -124,12 +107,47 @@ function renderBasket(thisObject) {
     basket.body.allowGravity = false;
 }
 
+function resetGame(thisObj, usePicture = true) {
+    if (basket !== null) basket.destroy();
+    renderTimer(thisObj);
+
+    coinsCollected = 0;
+    renderCoins(thisObj, coinsCollected);
+    hitNewHighscore = false;
+
+    levelManager.deleteEndScreen();
+    levelManager.renderLevelSelection(null, true);
+
+    coinsInGameArea.forEach(coin => {
+        if (coin !== null) coin.destroy();
+    });
+
+    isGameStarted = false;
+    coinsInGameArea.forEach(coin => {
+        if (coin !== null) coin.destroy();
+    });
+
+    timer = timerDefault;
+    renderTimer(thisObj);
+
+    coinsCollected = 0;
+    renderCoins(thisObj);
+
+    hitNewHighscore = false;
+
+    if (stopButton !== null) stopButton.destroy();
+    if (basket !== null) basket.destroy();
+    addStartButton(thisObj, usePicture);
+    levelManager.updateButton(true);
+}
+
 let testInput = null;
 class GameScene extends Phaser.Scene {
 
 
     constructor() {
         super("scene-game");
+        levelManager = new LevelManger(this);
     }
 
     preload() {
@@ -139,6 +157,9 @@ class GameScene extends Phaser.Scene {
         this.load.image('stop-button',  "assets/stop-button.png");
         this.load.image('start-button',  "assets/start-button.png")
         this.load.image('basket', 'assets/basket.png');
+        this.load.image('play-again', 'assets/play-again.png');
+
+        levelManager.loadObjects();
     }
 
 
@@ -152,6 +173,8 @@ class GameScene extends Phaser.Scene {
         renderTimer(this);
         renderCoins(this);
 
+        levelManager.renderLevelSelection(0, true);
+
 
         window.setInterval(() => {
 
@@ -159,7 +182,7 @@ class GameScene extends Phaser.Scene {
                 spawnCoin(this);
             }
 
-        }, 2000);
+        }, levelManager.getCoinSpawnRate());
 
 
         testInput = this.input.keyboard.createCursorKeys();
@@ -178,19 +201,31 @@ class GameScene extends Phaser.Scene {
                     timerText.destroy();
                     stopButton.destroy();
 
-                    const endTitle = this.add.text(180, 200, 'Game Over', {fill: '#0f0', fontSize: '120px'}).setInteractive().on('pointerdown', () => {
-                        endTitle.destroy();
-                        if (basket !== null) basket.destroy();
-                        renderTimer(this);
 
-                        coinsCollected = 0;
-                        renderCoins(this, coinsCollected);
-                        hitNewHighscore = false;
-
-                        coinsInGameArea.forEach(coin => {
-                            coin.destroy();
+                    let endHighscoreMessage = null;
+                    if (hitNewHighscore) {
+                         endHighscoreMessage = this.add.text(220, 325, 'Your highscore: ' + highScore, {
+                            fill: '#0f0',
+                            fontSize: '50px'
                         });
-                        addStartButton(this, true);
+                    }
+
+                    levelManager.deleteLevelButton();
+                    levelManager.renderEndScreen();
+
+                    const playAgain = this.add.image(500, 125, 'play-again').setScale(1.5).setInteractive().on('pointerdown', () => {
+                        if (endHighscoreMessage != null) endHighscoreMessage.destroy();
+                        if (endTitle !== null) endTitle.destroy();
+                        if (playAgain !== null) playAgain.destroy();
+                        resetGame(this, true);
+
+                    });
+
+                    const endTitle = this.add.text(180, 200, 'Game Over', {fill: '#0f0', fontSize: '120px'}).setInteractive().on('pointerdown', () => {
+                        if (endTitle !== null) endTitle.destroy();
+                        if (playAgain !== null) playAgain.destroy();
+                        if (endHighscoreMessage != null) endHighscoreMessage.destroy();
+                        resetGame(this, true);
                     });
                 }
             }
@@ -226,9 +261,9 @@ class GameScene extends Phaser.Scene {
             const {left, right} = testInput;
 
             if (left.isDown) {
-                basket.setVelocityX(-basketSpeed);
+                basket.setVelocityX(-levelManager.getBasketSpeed());
             } else if (right.isDown) {
-                basket.setVelocityX(basketSpeed);
+                basket.setVelocityX(levelManager.getBasketSpeed());
             } else {
                 basket.setVelocityX(0);
             }
