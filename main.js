@@ -43,7 +43,7 @@ function addStartButton(thisObj, usePicture = true) {
         startButton.destroy();
         addStopButton(thisObj, usePicture);
         levelManager.updateButton(false);
-        backgroundMusic.play();
+        if (musicEnabled) backgroundMusic.play();
     });
     return startButton;
 }
@@ -82,7 +82,9 @@ function renderCoins(thisObject, coinsToRender = coinsCollected) {
             setTimeout(() => {
                 newHighscoreText.destroy();
             }, 1500);
-            if (highScoreSound != null) highScoreSound.play();
+            if (highScoreSound != null && musicEnabled) {
+                highScoreSound.play();
+            }
         }
         hitNewHighscore = true;
         highScore = coinsToRender;
@@ -145,11 +147,33 @@ function resetGame(thisObj, usePicture = true) {
     levelManager.updateButton(true);
 }
 
+function renderMusicControls(thisObject, state = musicEnabled) {
+    if (typeof state !== 'boolean') {
+        return null;
+    }
+
+    const musicOptionObject = thisObject.add.image(state ? 16 : 60, 90, state ? 'audio-off' : 'audio-on').setScale(0.15).setInteractive().on('pointerdown', () => {
+        musicOptionObject.destroy();
+        musicEnabled = !musicEnabled;
+        renderMusicControls(thisObject, musicEnabled);
+        if (isGameStarted) {
+            if (musicEnabled) {
+                backgroundMusic.play();
+            } else {
+                backgroundMusic.stop();
+                thisObject.sound.stopAll();
+            }
+        }
+    });
+}
+
 let testInput = null;
 
 let coinSound = null;
 let backgroundMusic = null;
 let highScoreSound = null;
+
+let musicEnabled = true;
 
 class GameScene extends Phaser.Scene {
 
@@ -167,6 +191,8 @@ class GameScene extends Phaser.Scene {
         this.load.image('start-button',  "assets/start-button.png")
         this.load.image('basket', 'assets/basket.png');
         this.load.image('play-again', 'assets/play-again.png');
+        this.load.image('audio-on', 'assets/audio-on-TB.png');
+        this.load.image('audio-off', 'assets/audio-off-TB.png');
 
         this.load.audio('coin-sound', "assets/sounds/coin-sound.mp3");
         this.load.audio('background-music', "assets/sounds/background-music.mp3");
@@ -185,6 +211,7 @@ class GameScene extends Phaser.Scene {
 
         renderTimer(this);
         renderCoins(this);
+        renderMusicControls(this);
 
         levelManager.renderLevelSelection(0, true);
 
@@ -293,7 +320,9 @@ class GameScene extends Phaser.Scene {
                 coin.destroy();
                 coinsInGameArea.splice(index, 1);
 
-                if (coinSound != null) coinSound.play();
+                if (coinSound != null && musicEnabled) {
+                    coinSound.play();
+                }
 
                 coinsCollected += 1;
                 renderCoins(this, coinsCollected);
