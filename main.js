@@ -269,7 +269,7 @@ class GameScene extends Phaser.Scene {
             }
 
 
-            this.physics.add.overlap(coinsInGameArea, basket, (coin, basket) => {
+            this.physics.add.overlap(coinsInGameArea, basket, (coin) => {
                 const index = coinsInGameArea.indexOf(coin);
                 coin.destroy();
                 coinsInGameArea.splice(index, 1);
@@ -305,4 +305,4 @@ const config = {
     scene: [GameScene],
 };
 
-const game = new Phaser.Game(config);
+new Phaser.Game(config);
